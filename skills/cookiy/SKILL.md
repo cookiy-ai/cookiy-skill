@@ -39,17 +39,14 @@ Pick the matching command:
 
 | You are running in | Install command |
 |---|---|
-| Codex | `brew install cookiy-ai/tap/cookiy && cookiy dev --client codex -y` |
-| Claude Code | `brew install cookiy-ai/tap/cookiy && cookiy dev --client claude-code -y` |
-| Cursor | `brew install cookiy-ai/tap/cookiy && cookiy dev --client cursor -y` |
+| Codex | `npx cookiy-mcp dev --client codex -y` |
+| Claude Code | `npx cookiy-mcp dev --client claude-code -y` |
+| Cursor | `npx cookiy-mcp dev --client cursor -y` |
 | Cline | `npx cookiy-mcp dev --client cline -y` |
 | GitHub Copilot / VS Code | `npx cookiy-mcp dev --client vscode -y` |
 | Windsurf | `npx cookiy-mcp dev --client windsurf -y` |
 | OpenClaw | `npx cookiy-mcp dev --client openclaw -y` |
 | Other / unknown | `npx cookiy-mcp dev -y` (auto-detects) |
-
-If `brew` is not available, replace `brew install cookiy-ai/tap/cookiy && cookiy dev`
-with `npx cookiy-mcp dev` in the commands above.
 
 If your agent is not in the table above but supports MCP over HTTP,
 you can manually configure the MCP server URL: `https://dev-api.cookiy.ai/mcp`
