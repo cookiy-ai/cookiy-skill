@@ -35,8 +35,7 @@ brew install cookiy-ai/tap/cookiy && cookiy --client codex -y
 ### OpenClaw
 
 ```bash
-clawhub install cookiy-onboard
-clawhub install cookiy-workflows
+clawhub install cookiy
 ```
 
 Or install the MCP server directly:
@@ -68,10 +67,8 @@ cookiy-skill/
 ├── .claude-plugin/plugin.json     # Claude Code plugin manifest
 ├── .mcp.json                      # MCP server auto-registration
 ├── skills/
-│   ├── cookiy-onboard/            # Installation & setup skill
-│   │   └── SKILL.md
-│   └── cookiy-workflows/          # Workflow orchestration skill
-│       ├── SKILL.md               # Intent router & universal rules
+│   └── cookiy/                    # Single unified skill
+│       ├── SKILL.md               # Setup + intent router + universal rules
 │       └── references/
 │           ├── tool-contract.md   # Cross-workflow behavior contract
 │           ├── study-creation.md  # Create studies from research goals
@@ -85,15 +82,12 @@ cookiy-skill/
 └── LICENSE
 ```
 
-## Skills Overview
+## Skill Overview
 
-### cookiy-onboard
+The **cookiy** skill handles both setup and workflow orchestration in a single package:
 
-Handles installation, environment detection, OAuth authentication, and first-run verification. Guides the agent through setting up the Cookiy MCP server.
-
-### cookiy-workflows
-
-Routes user intents to the correct tool chain and enforces workflow rules:
+- **Setup** — Detects environment, installs the MCP server, handles OAuth, verifies connection
+- **Workflows** — Routes user intents to the correct tool chain with enforced sequencing
 
 | Capability | Tools Used |
 |---|---|
@@ -111,12 +105,12 @@ This single repository serves multiple distribution platforms:
 |---|---|---|
 | Claude Code Plugins | `.claude-plugin/`, `.mcp.json`, `skills/` | `claude plugin add cookiy-ai/cookiy-skill` |
 | skills.sh (Codex, etc.) | `skills/` | `npx skills add cookiy-ai/cookiy-skill` |
-| ClawHub (OpenClaw) | `skills/` | `clawhub install cookiy-onboard` |
+| ClawHub (OpenClaw) | `skills/` | `clawhub install cookiy` |
 | Cursor Marketplace | Submitted separately | Cursor marketplace UI |
 
 ## MCP Server
 
-The skills in this repo orchestrate [Cookiy's MCP server](https://s-api.cookiy.ai/mcp), which exposes 20 atomic tools for user research operations. The MCP server handles OAuth 2.1 authentication, billing, and all backend operations.
+The skill orchestrates [Cookiy's MCP server](https://s-api.cookiy.ai/mcp), which exposes 20 atomic tools for user research operations. The MCP server handles OAuth 2.1 authentication, billing, and all backend operations.
 
 For MCP server installation without skills, see the [cookiy-mcp npm package](https://www.npmjs.com/package/cookiy-mcp).
 
