@@ -65,7 +65,12 @@ The installer auto-detects installed AI clients and configures them.
 ```
 cookiy-skill/
 ├── .claude-plugin/plugin.json     # Claude Code plugin manifest
+├── .cursor-plugin/plugin.json     # Cursor plugin manifest
 ├── .mcp.json                      # MCP server auto-registration
+├── assets/
+│   └── logo.svg                   # Cookiy logo
+├── rules/
+│   └── cookiy-basics.mdc          # Cursor rules for MCP interaction
 ├── skills/
 │   └── cookiy/                    # Single unified skill
 │       ├── SKILL.md               # Setup + intent router + universal rules
@@ -106,7 +111,7 @@ This single repository serves multiple distribution platforms:
 | Claude Code Plugins | `.claude-plugin/`, `.mcp.json`, `skills/` | `claude plugin add cookiy-ai/cookiy-skill` |
 | skills.sh (Codex, etc.) | `skills/` | `npx skills add cookiy-ai/cookiy-skill` |
 | ClawHub (OpenClaw) | `skills/` | `clawhub install cookiy` |
-| Cursor Marketplace | Submitted separately | Cursor marketplace UI |
+| Cursor Marketplace | `.cursor-plugin/`, `rules/`, `.mcp.json` | Cursor marketplace UI |
 
 ## MCP Server
 

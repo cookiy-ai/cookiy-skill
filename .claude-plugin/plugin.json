@@ -4,8 +4,10 @@
   "version": "1.0.0",
   "author": {
     "name": "Cookiy AI",
+    "email": "dev@cookiy.ai",
     "url": "https://cookiy.ai"
   },
   "repository": "https://github.com/cookiy-ai/cookiy-skill",
-  "license": "MIT"
+  "license": "MIT",
+  "logo": "assets/logo.svg"
 }
