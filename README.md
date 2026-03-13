@@ -17,7 +17,7 @@ claude plugin add cookiy-ai/cookiy-skill
 Or install the MCP server standalone:
 
 ```bash
-brew install cookiy-ai/tap/cookiy && cookiy
+brew install cookiy-ai/tap/cookiy && cookiy dev
 ```
 
 ### Codex
@@ -29,7 +29,7 @@ npx skills add cookiy-ai/cookiy-skill
 Or install the MCP server directly:
 
 ```bash
-brew install cookiy-ai/tap/cookiy && cookiy --client codex -y
+brew install cookiy-ai/tap/cookiy && cookiy dev --client codex -y
 ```
 
 ### OpenClaw
@@ -41,7 +41,7 @@ clawhub install cookiy
 Or install the MCP server directly:
 
 ```bash
-npx cookiy-mcp --client openclaw
+npx cookiy-mcp dev --client openclaw
 ```
 
 ### Cursor
@@ -49,13 +49,13 @@ npx cookiy-mcp --client openclaw
 Install from the [Cursor Marketplace](https://cursor.com/marketplace), or manually:
 
 ```bash
-npx cookiy-mcp --client cursor -y
+npx cookiy-mcp dev --client cursor -y
 ```
 
 ### Any platform with Node.js
 
 ```bash
-npx cookiy-mcp
+npx cookiy-mcp dev
 ```
 
 The installer auto-detects installed AI clients and configures them.

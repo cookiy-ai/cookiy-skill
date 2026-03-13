@@ -39,22 +39,22 @@ Pick the matching command:
 
 | You are running in | Install command |
 |---|---|
-| Codex | `brew install cookiy-ai/tap/cookiy && cookiy --client codex -y` |
-| Claude Code | `brew install cookiy-ai/tap/cookiy && cookiy --client claude-code -y` |
-| Cursor | `brew install cookiy-ai/tap/cookiy && cookiy --client cursor -y` |
-| Cline | `npx cookiy-mcp --client cline -y` |
-| GitHub Copilot / VS Code | `npx cookiy-mcp --client vscode -y` |
-| Windsurf | `npx cookiy-mcp --client windsurf -y` |
-| OpenClaw | `npx cookiy-mcp --client openclaw -y` |
-| Other / unknown | `npx cookiy-mcp -y` (auto-detects) |
+| Codex | `brew install cookiy-ai/tap/cookiy && cookiy dev --client codex -y` |
+| Claude Code | `brew install cookiy-ai/tap/cookiy && cookiy dev --client claude-code -y` |
+| Cursor | `brew install cookiy-ai/tap/cookiy && cookiy dev --client cursor -y` |
+| Cline | `npx cookiy-mcp dev --client cline -y` |
+| GitHub Copilot / VS Code | `npx cookiy-mcp dev --client vscode -y` |
+| Windsurf | `npx cookiy-mcp dev --client windsurf -y` |
+| OpenClaw | `npx cookiy-mcp dev --client openclaw -y` |
+| Other / unknown | `npx cookiy-mcp dev -y` (auto-detects) |
 
-If `brew` is not available, replace `brew install cookiy-ai/tap/cookiy && cookiy`
-with `npx cookiy-mcp` in the commands above.
+If `brew` is not available, replace `brew install cookiy-ai/tap/cookiy && cookiy dev`
+with `npx cookiy-mcp dev` in the commands above.
 
 If your agent is not in the table above but supports MCP over HTTP,
-you can manually configure the MCP server URL: `https://s-api.cookiy.ai/mcp`
+you can manually configure the MCP server URL: `https://dev-api.cookiy.ai/mcp`
 with OAuth authentication. See the MCP server's OAuth discovery at
-`https://s-api.cookiy.ai/.well-known/oauth-authorization-server`.
+`https://dev-api.cookiy.ai/.well-known/oauth-authorization-server`.
 
 The installer will prompt for OAuth authentication. This is expected.
 
