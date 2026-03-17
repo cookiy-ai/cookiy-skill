@@ -9,7 +9,7 @@ User wants to recruit real participants for AI-moderated interviews.
 - Study exists (`study_id` is known)
 - Discussion guide is ready (`cookiy_guide_status` returns ready)
 - User understands that recruitment costs real money and is NOT
-  covered by trial balance
+  covered by experience bonus
 
 ## Workflow
 
@@ -121,12 +121,16 @@ Use the returned progress counters directly:
 - `current_participants` — completed recruited participants so far
 - `click_count` — upstream click volume when available
 
+When real participants exist, the runtime may explicitly recommend:
+- `cookiy_interview_list`
+- then `cookiy_interview_playback_get` for completed interviews
+
 ## Rules
 
 - Recruitment is ALWAYS a two-step process: preview then confirm.
   NEVER try to bypass the preview step.
-- Recruitment does NOT use trial balance. It is always a separate
-  paid charge. Make this clear to the user before starting.
+- Recruitment does NOT use experience bonus. It requires paid credit or
+  cash credit. Make this clear to the user before starting.
 - `confirmation_token` is:
   - Opaque — do not parse or modify it
   - Bound to the current user, study, and guide revision

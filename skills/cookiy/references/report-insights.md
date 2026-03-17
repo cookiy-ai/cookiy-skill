@@ -88,10 +88,10 @@ If this call returns 402:
 ```
 cookiy_balance_get
 ```
-Returns current balance including trial credits. Report generation does
-not charge here from MCP because manual generation is not exposed.
-Trial balance or experience bonus may still apply when retrieving report
-access via `cookiy_report_share_link_get`.
+Returns current balance including experience bonus, cash credit, and
+per-product paid counters. Report generation does not charge here from
+MCP because manual generation is not exposed. Experience bonus may still
+apply when retrieving report access via `cookiy_report_share_link_get`.
 
 **Browse studies:**
 ```

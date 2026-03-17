@@ -18,3 +18,4 @@ run npx -y cookiy-mcp --client vscode --dry-run -y
 run npx -y cookiy-mcp --client openclaw --dry-run -y
 run npx -y cookiy-mcp --client windsurf --dry-run -y
 run npx -y cookiy-mcp --client cline --dry-run -y
+run npx -y cookiy-mcp --client manus --dry-run -y

@@ -1,6 +1,6 @@
 # Cookiy Skill
 
-Turn Claude Code, Codex, Cursor, OpenClaw, and other MCP clients into AI user-research operators that can create studies, run interviews, recruit participants, and deliver report links from plain-English prompts.
+Turn Claude Code, Codex, Cursor, VS Code / GitHub Copilot, Windsurf, Cline, OpenClaw, Manus, and other MCP clients into AI user-research operators that can create studies, run interviews, recruit participants, and deliver report links from plain-English prompts.
 
 This repository now has two layers:
 
@@ -121,6 +121,33 @@ Or install the MCP server directly:
 npx cookiy-mcp --client openclaw -y
 ```
 
+### VS Code / GitHub Copilot
+
+```bash
+npx cookiy-mcp --client vscode -y
+```
+
+### Windsurf
+
+```bash
+npx cookiy-mcp --client windsurf -y
+```
+
+### Cline
+
+```bash
+npx cookiy-mcp --client cline -y
+```
+
+### Manus
+
+```bash
+npx cookiy-mcp --client manus -y
+```
+
+This writes a resumable headless OAuth helper bundle under `~/.mcp/<server>/`
+for Manus-style sandbox environments.
+
 ### Cursor
 
 Install from the [Cursor Marketplace](https://cursor.com/marketplace), or manually:
@@ -137,6 +164,12 @@ npx cookiy-mcp -y
 
 The installer auto-detects installed AI clients and configures them.
 
+### macOS with Homebrew
+
+```bash
+brew install cookiy-ai/tap/cookiy && cookiy -y
+```
+
 ## Verification Matrix
 
 Validation note: rows below reflect direct `cookiy-mcp` CLI dry-runs against the live installer contract.
@@ -150,6 +183,7 @@ Validation note: rows below reflect direct `cookiy-mcp` CLI dry-runs against the
 | OpenClaw | `npx cookiy-mcp --client openclaw -y` | CLI dry-run verified, client detected locally | 2026-03-17 |
 | Windsurf | `npx cookiy-mcp --client windsurf -y` | CLI dry-run verified via forced client selection | 2026-03-17 |
 | Cline | `npx cookiy-mcp --client cline -y` | CLI dry-run verified via forced client selection | 2026-03-17 |
+| Manus | `npx cookiy-mcp --client manus -y` | CLI dry-run verified via forced client selection | 2026-03-17 |
 
 ## Public Surface
 
@@ -160,6 +194,7 @@ These install and discovery surfaces remain the protected runtime contract for t
 - Claude plugin: `claude plugin add cookiy-ai/cookiy-skill`
 - ClawHub: `clawhub install cookiy`
 - npm MCP installer: [cookiy-mcp](https://www.npmjs.com/package/cookiy-mcp)
+- Homebrew Tap: [cookiy-ai/homebrew-tap](https://github.com/cookiy-ai/homebrew-tap)
 - Official MCP Registry: `ai.cookiy/cookiy`
 - MCP endpoint: `https://s-api.cookiy.ai/mcp`
 
@@ -227,16 +262,54 @@ cookiy-skill/
 
 The repository still exposes one production installable skill: `cookiy`.
 
-That skill handles both setup and workflow orchestration:
+That skill handles both setup and workflow orchestration across the full
+public MCP surface:
 
-- Setup: install the MCP server for the current client and verify OAuth.
-- Study creation: `cookiy_media_upload` -> `cookiy_study_create` -> `cookiy_guide_status` -> `cookiy_guide_get`
-- AI interview: `cookiy_simulated_interview_generate` -> `cookiy_simulated_interview_status` -> `cookiy_interview_list` -> `cookiy_interview_playback_get`
-- Guide editing: `cookiy_guide_get` -> `cookiy_guide_impact` -> `cookiy_guide_patch`
-- Recruitment: `cookiy_recruit_create` preview -> `cookiy_recruit_create` confirm -> `cookiy_recruit_status`
-- Report and insights: `cookiy_report_status` -> `cookiy_report_share_link_get`
+- Discovery and workflow guidance:
+  - `cookiy_introduce`
+  - `cookiy_help`
+- Study creation:
+  - `cookiy_media_upload`
+  - `cookiy_study_create`
+  - `cookiy_guide_status`
+  - `cookiy_guide_get`
+- AI interview:
+  - `cookiy_simulated_interview_generate`
+  - `cookiy_simulated_interview_status`
+  - `cookiy_interview_list`
+  - `cookiy_interview_playback_get`
+- Guide editing:
+  - `cookiy_guide_get`
+  - `cookiy_guide_impact`
+  - `cookiy_guide_patch`
+- Recruitment:
+  - `cookiy_recruit_create`
+  - `cookiy_recruit_status`
+- Report and insights:
+  - `cookiy_report_status`
+  - `cookiy_report_share_link_get`
+  - `cookiy_study_get`
+  - `cookiy_study_list`
+- Billing and balance:
+  - `cookiy_balance_get`
 
 Manual report generation is no longer part of the public MCP skill contract. The public docs in this repo are aligned to the current runtime behavior.
+
+`cookiy_help` supports canonical workflow topics:
+- `overview`
+- `study`
+- `ai_interview`
+- `guide`
+- `recruitment`
+- `report`
+- `billing`
+
+Common aliases like `study creation`, `discussion guide`, and `report and insights`
+are also accepted by the current runtime.
+
+For eligible paid actions, the runtime may apply `experience_bonus`
+before purchased credit. Recruitment is separate and requires paid
+credit or cash credit.
 
 The source for the public installer package also now lives in this repository under `packages/cookiy-mcp/`.
 

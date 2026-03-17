@@ -32,8 +32,8 @@ Try calling `cookiy_introduce`. If it succeeds, skip to Part 2.
 ### Install the MCP server
 
 Identify which AI client you are running in (Codex, Claude Code, Cursor,
-OpenClaw, etc.) and install ONLY for that client. Do not install for all
-clients at once.
+VS Code, Windsurf, Cline, OpenClaw, Manus, etc.) and install ONLY for
+that client. Do not install for all clients at once.
 
 Pick the matching command:
 
@@ -46,12 +46,17 @@ Pick the matching command:
 | GitHub Copilot / VS Code | `npx cookiy-mcp --client vscode -y` |
 | Windsurf | `npx cookiy-mcp --client windsurf -y` |
 | OpenClaw | `npx cookiy-mcp --client openclaw -y` |
+| Manus / headless sandbox | `npx cookiy-mcp --client manus -y` |
 | Other / unknown | `npx cookiy-mcp -y` (auto-detects production) |
 
 If your agent is not in the table above but supports MCP over HTTP,
 you can manually configure the MCP server URL: `https://s-api.cookiy.ai/mcp`
 with OAuth authentication. See the MCP server's OAuth discovery at
 `https://s-api.cookiy.ai/.well-known/oauth-authorization-server`.
+
+For headless sandbox environments such as Manus, use
+`npx cookiy-mcp --client manus -y`. The installer writes a resumable
+OAuth helper bundle under `~/.mcp/<server>/`.
 
 The installer will prompt for OAuth authentication. This is expected.
 
@@ -96,7 +101,7 @@ Follow the tool contract and workflow state machines in the reference files.
 | Check account balance | Direct: `cookiy_balance_get` | — |
 | List existing studies | Direct: `cookiy_study_list` | — |
 | Learn what Cookiy can do | Direct: `cookiy_introduce` | — |
-| Get workflow help on a topic | Direct: `cookiy_help` | — |
+| Get workflow help on a topic | Direct: `cookiy_help` (`overview`, `study`, `ai_interview`, `guide`, `recruitment`, `report`, `billing`; common aliases accepted) | — |
 
 When the user's intent spans multiple workflows (e.g., "create a study
 and run interviews"), execute them sequentially in the order listed above.
@@ -116,8 +121,9 @@ See tool-contract.md for the complete specification.
 
 **Payment:**
 - On HTTP 402: prefer `structuredContent.data.payment_summary` and `checkout_url`; if those fields are absent, fall back to `error.details`.
-- Trial balance may apply to study creation, simulated interviews, and report access via `cookiy_report_share_link_get`.
-- Trial balance does NOT cover: recruitment (always charged separately).
+- `cookiy_balance_get` may show `experience_bonus`; eligible MCP actions may consume that bonus before purchased credit.
+- Experience bonus may apply to study creation, simulated interviews, and report access via `cookiy_report_share_link_get`.
+- Experience bonus does NOT cover: recruitment (recruitment requires paid credit or cash credit).
 
 **URLs:**
 - NEVER construct URLs manually. ONLY use URLs from tool responses.

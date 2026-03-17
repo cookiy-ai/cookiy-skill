@@ -104,6 +104,11 @@ cookiy_interview_list
 This returns interview identifiers. Use cursor-based pagination if
 the list is long.
 
+The runtime may also return:
+- `status_breakdown` — interview counts by status
+- `playback_ready_interview_ids` — completed interview IDs already ready
+  for transcript/playback review
+
 ### 5. View interview transcripts
 
 For each interview the user wants to review:

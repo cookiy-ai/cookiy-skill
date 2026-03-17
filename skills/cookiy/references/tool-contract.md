@@ -100,24 +100,26 @@ When any tool returns status_code 402:
    retry path.
 5. NEVER recalculate or restate prices from raw quote fields.
 
-### Trial balance rules
+### Experience bonus rules
 
-- New users receive a trial balance (typically $3.00).
-- Trial balance is deducted at real product prices.
-- Trial balance covers:
+- New users may receive an `experience_bonus` allocation visible in
+  `cookiy_balance_get`.
+- Experience bonus is deducted at real product prices.
+- Experience bonus covers eligible actions such as:
   - Discussion guide generation (`cookiy_study_create`)
   - AI-to-AI interview generation (`cookiy_simulated_interview_generate`)
   - Report access when retrieving the share link
     (`cookiy_report_share_link_get`)
-- Trial balance does NOT cover:
+- Experience bonus does NOT cover:
   - Recruitment of real participants (`cookiy_recruit_create`)
-  - Recruitment is always a separate paid charge.
+  - Recruitment requires paid credit or cash credit.
 - `cookiy_balance_get` may also show `experience_bonus`. Eligible MCP
   actions use that bonus before purchased credits, so paid product
   counters may stay unchanged even when an action succeeded.
 - If a covered operation fails before task dispatch, the credit is
   refunded automatically.
-- Use `cookiy_balance_get` to check current trial balance.
+- Use `cookiy_balance_get` to check current experience bonus, cash
+  credit, and per-product paid counters.
 
 ## Error handling by status code
 
