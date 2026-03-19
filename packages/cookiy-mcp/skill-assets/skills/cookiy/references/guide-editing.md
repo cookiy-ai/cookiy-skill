@@ -83,7 +83,9 @@ recruit_reconfigure_confirmed: true
 ```
 
 Only set this after explaining the impact to the user and getting
-their approval.
+their approval. If the runtime returns server-specific reconfiguration
+choices, pass them through `recruit_reconfigure_options` on the retry
+instead of inventing your own structure.
 
 ### 5. Verify the update (optional)
 

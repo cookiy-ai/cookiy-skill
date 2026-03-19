@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, readFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, realpath, symlink, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
-import { tmpdir } from 'node:os';
+import { platform, tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import {
   installLocalSkill,
@@ -32,6 +32,31 @@ test('resolves packaged skill assets from explicit env path', () => {
   });
   assert.equal(resolved, null);
   delete process.env.COOKIY_SKILL_ASSETS_DIR;
+});
+
+test('resolves packaged skill assets when runtime path is an npx-style .bin symlink', {
+  skip: platform() === 'win32',
+}, async () => {
+  const tempRoot = await mkdtemp(join(tmpdir(), 'cookiy-skill-assets-'));
+  const packageRoot = join(tempRoot, 'node_modules', 'cookiy-mcp');
+  const binDir = join(packageRoot, 'bin');
+  const skillAssetsDir = join(packageRoot, 'skill-assets');
+  const shimDir = join(tempRoot, 'node_modules', '.bin');
+  const cliPath = join(binDir, 'cli.mjs');
+  const shimPath = join(shimDir, 'cookiy-mcp');
+
+  await mkdir(binDir, { recursive: true });
+  await mkdir(skillAssetsDir, { recursive: true });
+  await mkdir(shimDir, { recursive: true });
+  await writeFile(cliPath, '#!/usr/bin/env node\n');
+  await symlink('../cookiy-mcp/bin/cli.mjs', shimPath);
+
+  const resolved = resolvePackagedSkillAssetsDir({
+    runtimePath: shimPath,
+    execPath: '/usr/bin/node',
+  });
+
+  assert.equal(resolved, await realpath(skillAssetsDir));
 });
 
 test('installs and removes packaged local skill assets', async () => {

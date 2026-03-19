@@ -39,9 +39,14 @@ this over guessing the next step. Examples:
 
 For recruitment truth, prefer evidence in this order:
 1. `cookiy_interview_list`
-2. `cookiy_recruit_status` (use `sync: true` when you need a fresh check)
+2. `cookiy_recruit_status`
 3. The latest `cookiy_recruit_create` response
 4. `cookiy_study_get.state`
+
+`cookiy_recruit_status` is the billing-aware recruitment authority in
+the current public contract. There is no separate `sync` flag; the
+server already reconciles pending recruit checkout state before
+reporting status.
 
 ### `status_message`
 
@@ -105,7 +110,7 @@ When any tool returns status_code 402:
    present in `structuredContent.data`, follow them for the post-payment
    retry path.
 5. For recruitment specifically, after payment prefer this sequence:
-   `cookiy_recruit_status(sync=true)` -> `cookiy_interview_list` ->
+   `cookiy_recruit_status` -> `cookiy_interview_list` ->
    retry `cookiy_recruit_create` only if those checks still show that
    launch/configuration has not taken effect.
 6. NEVER recalculate or restate prices from raw quote fields.
@@ -131,6 +136,18 @@ When any tool returns status_code 402:
 - Use `cookiy_balance_get` to check current experience bonus, cash
   credit, and per-product paid counters.
 
+### Balance display rules
+
+When presenting `cookiy_balance_get` output:
+- Prefer `consumer_balance_overview`.
+- Prefer `recent_purchases[].display_line` and
+  `recent_usage[].display_line` for user-facing billing statements.
+- Quote the exact money strings returned by the server.
+- Do NOT recompute amounts from cents, drop leading dollar digits, or
+  merge purchase rows with usage rows.
+- Treat usage rows as historical consumption, not as remaining
+  purchasable recruit credit.
+
 ## Error handling by status code
 
 | Code | Meaning | Action |
@@ -143,6 +160,9 @@ When any tool returns status_code 402:
 | 404 | Not found | Verify the identifier. It may have been deleted or never existed. |
 | 409 | Conflict | Revision mismatch or state conflict. Re-fetch current state and retry. |
 | 422 | Invalid payload | Read `error.details` for field-level errors. |
+| 429 | Rate limited | Back off and retry later. |
+| 500 | Internal failure | Treat as transient and retry with backoff. |
+| 502 | Upstream dependency failure | Retry later; dependency may be unavailable. |
 | 503 | Unavailable | Temporary. Wait and retry once. |
 
 ## URL rules

@@ -1,16 +1,26 @@
-import { cpSync, existsSync, mkdirSync, rmSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, realpathSync, rmSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 
 const LOCAL_SKILL_CLIENTS = new Set(['codex', 'claudeCode', 'openclaw']);
+
+function resolveRuntimeDir(runtimePath) {
+  if (!runtimePath) return null;
+
+  try {
+    return dirname(realpathSync(runtimePath));
+  } catch {
+    return dirname(resolve(runtimePath));
+  }
+}
 
 export function resolvePackagedSkillAssetsDir({ runtimePath = process.argv[1], execPath = process.execPath } = {}) {
   const candidates = [];
   const explicit = process.env.COOKIY_SKILL_ASSETS_DIR;
   if (explicit) candidates.push(explicit);
 
-  if (runtimePath) {
-    const runtimeDir = dirname(resolve(runtimePath));
+  const runtimeDir = resolveRuntimeDir(runtimePath);
+  if (runtimeDir) {
     candidates.push(join(dirname(runtimeDir), 'skill-assets'));
     candidates.push(join(runtimeDir, 'skill-assets'));
   }
