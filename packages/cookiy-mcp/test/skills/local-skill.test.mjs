@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { existsSync } from 'node:fs';
 import { mkdir, mkdtemp, readFile, realpath, symlink, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { platform, tmpdir } from 'node:os';
@@ -59,7 +60,7 @@ test('resolves packaged skill assets when runtime path is an npx-style .bin syml
   assert.equal(resolved, await realpath(skillAssetsDir));
 });
 
-test('installs and removes packaged local skill assets', async () => {
+test('installs and removes packaged local skill assets for Claude Code', async () => {
   const homeDir = await mkdtemp(join(tmpdir(), 'cookiy-skill-home-'));
   const targetDir = await installLocalSkill('claudeCode', 'cookiy', {
     homeDir,
@@ -74,4 +75,24 @@ test('installs and removes packaged local skill assets', async () => {
 
   await removeLocalSkill('claudeCode', 'cookiy', { homeDir });
   assert.equal(resolveLocalSkillPath('claudeCode', 'cookiy', homeDir), join(homeDir, '.claude', 'skills', 'cookiy'));
+});
+
+test('dedupes nested skill entrypoints for Codex installs', async () => {
+  const homeDir = await mkdtemp(join(tmpdir(), 'cookiy-codex-skill-home-'));
+  const targetDir = await installLocalSkill('codex', 'cookiy', {
+    homeDir,
+    skillAssetsDir: join(packageDir, 'skill-assets'),
+  });
+
+  const rootSkill = await readFile(join(targetDir, 'SKILL.md'), 'utf8');
+
+  assert.match(rootSkill, /^---/m);
+  assert.equal(
+    existsSync(join(targetDir, 'skills', 'cookiy', 'SKILL.md')),
+    false,
+  );
+  assert.equal(
+    existsSync(join(targetDir, 'skills', 'cookiy', 'references', 'tool-contract.md')),
+    true,
+  );
 });

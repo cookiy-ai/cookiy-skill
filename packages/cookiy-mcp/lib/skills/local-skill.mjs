@@ -67,6 +67,15 @@ export function getLocalSkillLabel(clientKey) {
   }
 }
 
+function trimDuplicatedSkillEntrypoints(clientKey, targetDir) {
+  // Codex recursively discovers SKILL.md files under a skill directory.
+  // Keep the root entrypoint and nested references, but remove the nested
+  // skill root so Codex does not surface two identical "cookiy" skills.
+  if (clientKey !== 'codex') return;
+
+  rmSync(join(targetDir, 'skills', 'cookiy', 'SKILL.md'), { force: true });
+}
+
 export async function installLocalSkill(clientKey, serverName, { homeDir, skillAssetsDir: explicitSkillAssetsDir } = {}) {
   const targetDir = resolveLocalSkillPath(clientKey, serverName, homeDir);
   if (!targetDir) return null;
@@ -80,6 +89,7 @@ export async function installLocalSkill(clientKey, serverName, { homeDir, skillA
   rmSync(targetDir, { recursive: true, force: true });
   mkdirSync(dirname(targetDir), { recursive: true });
   cpSync(skillAssetsDir, targetDir, { recursive: true });
+  trimDuplicatedSkillEntrypoints(clientKey, targetDir);
   return targetDir;
 }
 
