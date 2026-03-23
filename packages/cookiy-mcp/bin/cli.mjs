@@ -322,7 +322,7 @@ export async function main(argv = process.argv.slice(2)) {
       const hasCodex = !!codexEntry;
       const codexViaCli = hasCodex && allClients.codex?.cliPath;
       if (hasOnlyOauth) {
-        console.log(c.green('  All set! Headless OAuth helper files are ready to use.'));
+        console.log(c.green('  All set! Cookiy MCP is installed, connected, and verified.'));
       } else {
         console.log(c.green('  All set! Next steps to activate:'));
         console.log();

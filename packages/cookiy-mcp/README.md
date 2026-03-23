@@ -194,6 +194,15 @@ Options:
 
 `openclaw` and `manus` use a resumable headless OAuth flow. The installer saves a pending session file before opening the authorization link, so rerunning the same command after a timeout or sandbox restart will reuse the same `client_id`, PKCE verifier, and state instead of creating a new OAuth session.
 
+When the browser can reach the local callback, setup finishes automatically.
+If the browser ends on a sandbox-unreachable `127.0.0.1` callback and the
+terminal does not continue, paste either the full callback URL or just the
+authorization code back into the installer prompt.
+
+After token exchange, the installer verifies the MCP connection with a
+lightweight Cookiy tool call and prints a concise success confirmation
+instead of requiring a manual raw-JSON verification step.
+
 After a successful exchange, the installer writes:
 
 - `credentials.json` with the OAuth tokens

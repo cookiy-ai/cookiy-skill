@@ -4,6 +4,8 @@ import { createServer } from 'node:http';
 import { spawn } from 'node:child_process';
 import readline from 'node:readline';
 import crypto from 'node:crypto';
+import https from 'node:https';
+import http from 'node:http';
 import { c, readJsonFile, writeJsonFile } from '../util.mjs';
 import { mcpUrl, LEGACY_SERVER_NAMES } from '../config.mjs';
 import {
@@ -79,20 +81,164 @@ ${codeBlock}
 </body></html>`;
 }
 
-function openBrowser(url) {
-  let child;
-  if (process.platform === 'darwin') {
-    child = spawn('open', [url], { detached: true, stdio: 'ignore' });
-  } else if (process.platform === 'win32') {
-    child = spawn('cmd', ['/c', 'start', '', url], {
-      detached: true,
-      stdio: 'ignore',
-    });
-  } else {
-    child = spawn('xdg-open', [url], { detached: true, stdio: 'ignore' });
+export function buildBrowserOpenCommand(url, platform = process.platform) {
+  if (platform === 'darwin') {
+    return { command: 'open', args: [url] };
   }
-  child.on('error', () => {});
-  child.unref();
+  if (platform === 'win32') {
+    return { command: 'cmd', args: ['/c', 'start', '', url] };
+  }
+  return { command: 'xdg-open', args: [url] };
+}
+
+export function formatAuthorizationGuidance({
+  clientLabel,
+  authUrl,
+  callbackPort,
+  browserOpened,
+}) {
+  const callbackUrl = `http://127.0.0.1:${callbackPort}/callback`;
+  const browserLine = browserOpened
+    ? 'The authorization page should already be opening in your browser.'
+    : 'Open the authorization link below in your browser to continue.';
+
+  return [
+    `${clientLabel} authorization needs one quick step in the browser.`,
+    browserLine,
+    `Authorize Cookiy: ${authUrl}`,
+    `After approval, setup will continue automatically if the browser can reach ${callbackUrl}.`,
+    'If the terminal does not continue within a few seconds, paste the full callback URL or just the code here and press Enter.',
+  ];
+}
+
+function postJsonRpc(endpoint, payload, accessToken) {
+  const parsedUrl = new URL(endpoint);
+  const client = parsedUrl.protocol === 'https:' ? https : http;
+  const body = JSON.stringify(payload);
+
+  return new Promise((resolve, reject) => {
+    const req = client.request(parsedUrl, {
+      method: 'POST',
+      timeout: 15000,
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(body),
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }, (res) => {
+      let data = '';
+      res.on('data', (chunk) => {
+        data += chunk;
+      });
+      res.on('end', () => {
+        if (res.statusCode >= 400) {
+          reject(new Error(`MCP HTTP ${res.statusCode}: ${data}`));
+          return;
+        }
+        if (data.trim() === '') {
+          resolve({});
+          return;
+        }
+        try {
+          resolve(JSON.parse(data));
+        } catch {
+          reject(new Error(`MCP returned invalid JSON: ${data}`));
+        }
+      });
+    });
+
+    req.on('error', (err) => reject(new Error(`MCP request failed: ${err.message}`)));
+    req.on('timeout', () => {
+      req.destroy();
+      reject(new Error('MCP request timed out'));
+    });
+
+    req.write(body);
+    req.end();
+  });
+}
+
+export async function verifyCookiyMcpConnection(endpoint, accessToken, {
+  clientInfoName = 'headless-oauth',
+} = {}) {
+  const initializeResponse = await postJsonRpc(endpoint, {
+    jsonrpc: '2.0',
+    id: 1,
+    method: 'initialize',
+    params: {
+      protocolVersion: '2025-03-26',
+      capabilities: {},
+      clientInfo: {
+        name: clientInfoName,
+        version: '1.0.0',
+      },
+    },
+  }, accessToken);
+
+  if (initializeResponse.error) {
+    throw new Error(`MCP initialize failed: ${initializeResponse.error.message || 'unknown error'}`);
+  }
+
+  await postJsonRpc(endpoint, {
+    jsonrpc: '2.0',
+    method: 'notifications/initialized',
+  }, accessToken);
+
+  const toolResponse = await postJsonRpc(endpoint, {
+    jsonrpc: '2.0',
+    id: 2,
+    method: 'tools/call',
+    params: {
+      name: 'cookiy_introduce',
+      arguments: {},
+    },
+  }, accessToken);
+
+  if (toolResponse.error) {
+    throw new Error(`Cookiy verification failed: ${toolResponse.error.message || 'unknown error'}`);
+  }
+
+  const structuredContent = toolResponse.result?.structuredContent;
+  if (structuredContent?.ok === false) {
+    throw new Error('Cookiy verification failed: introduce returned ok=false');
+  }
+
+  return true;
+}
+
+async function openBrowser(url) {
+  const { command, args } = buildBrowserOpenCommand(url);
+
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = (result) => {
+      if (settled) return;
+      settled = true;
+      resolve(result);
+    };
+
+    let child;
+    try {
+      child = spawn(command, args, { detached: true, stdio: 'ignore' });
+    } catch (err) {
+      finish({ opened: false, reason: err.message });
+      return;
+    }
+
+    child.on('error', (err) => {
+      finish({ opened: false, reason: err.message });
+    });
+    child.on('exit', (code) => {
+      if (typeof code === 'number' && code !== 0) {
+        finish({ opened: false, reason: `exit code ${code}` });
+      }
+    });
+    child.unref();
+
+    setTimeout(() => {
+      finish({ opened: true });
+    }, 150);
+  });
 }
 
 function closeServer(server) {
@@ -615,7 +761,21 @@ export async function installHeadlessOauthClient(serverUrl, serverName, {
   console.log(`  ${c.dim('[3/4]')} Waiting for browser authorization...`);
   console.log();
   console.log('  Opening browser for authorization...');
-  console.log(`  ${c.dim(session.auth_url)}`);
+  const browserOpenResult = await openBrowser(session.auth_url);
+  const guidanceLines = formatAuthorizationGuidance({
+    clientLabel,
+    authUrl: session.auth_url,
+    callbackPort: session.callback_port,
+    browserOpened: browserOpenResult.opened,
+  });
+  console.log();
+  console.log(`  ${c.bold('Action required:')} ${guidanceLines[0]}`);
+  for (const line of guidanceLines.slice(1)) {
+    console.log(`  ${c.dim(line)}`);
+  }
+  if (!browserOpenResult.opened && browserOpenResult.reason) {
+    console.log(`  ${c.yellow('Browser auto-open failed:')} ${c.dim(browserOpenResult.reason)}`);
+  }
   console.log();
   console.log(
     '  NOTE: If you are an AI agent presenting this URL to a user in a chat app,',
@@ -624,10 +784,6 @@ export async function installHeadlessOauthClient(serverUrl, serverName, {
     `  use a markdown link to prevent truncation: [Authorize Cookiy](${session.auth_url})`,
   );
   console.log();
-  console.log(
-    `  ${c.dim('If the browser cannot reach the local callback page, copy the full callback URL or the code and paste it here.')}`,
-  );
-  openBrowser(session.auth_url);
   console.log(`  ${c.dim('Waiting for authorization...')}`);
   console.log(
     `  ${c.dim('Paste the full callback URL or the authorization code, then press Enter:')}`,
@@ -695,6 +851,12 @@ export async function installHeadlessOauthClient(serverUrl, serverName, {
 
   rmSync(paths.pendingSessionPath, { force: true });
   console.log(`  ${c.green('Cleared')} ${c.dim(paths.pendingSessionPath)}`);
+
+  console.log(`  ${c.dim('[5/5]')} Verifying Cookiy MCP connection...`);
+  await verifyCookiyMcpConnection(endpoint, credentials.access_token, {
+    clientInfoName: callScriptClientInfoName,
+  });
+  console.log(`  ${c.green('OK')} Cookiy MCP installed and verified successfully.`);
   console.log();
 
   return `${paths.scriptName} ready at ${paths.scriptPath}`;

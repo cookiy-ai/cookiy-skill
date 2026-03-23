@@ -154,7 +154,12 @@ npx cookiy-mcp --client manus -y
 ```
 
 This writes a resumable headless OAuth helper bundle under `~/.mcp/<server>/`
-for Manus-style sandbox environments.
+for Manus-style sandbox environments. The installer now opens the
+authorization page when possible and prints one explicit next step:
+approve the browser prompt, then paste the final callback URL or the
+authorization code back into the terminal only if setup does not resume
+automatically. After token exchange, it verifies the MCP connection and
+prints a short success confirmation.
 
 ### Cursor
 

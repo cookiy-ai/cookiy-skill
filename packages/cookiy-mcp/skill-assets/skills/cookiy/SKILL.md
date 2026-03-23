@@ -29,6 +29,21 @@ natural language.
 
 Try calling `cookiy_introduce`. If it succeeds, skip to Part 2.
 
+### Setup-first conversation policy
+
+- If the user is trying to install, connect, repair, or verify Cookiy,
+  complete setup first. Do NOT ask research-goal, participant, or
+  report-format questions before MCP is healthy.
+- On `/cookiy` entry, if MCP health is unknown, run setup first. Only
+  move into business discovery after setup succeeds or when the user
+  explicitly asks what Cookiy can do.
+- During setup, present only one next action at a time. For headless
+  OAuth clients, surface the installer's single action block instead of
+  inventing multiple options unless the installer actually fails.
+- When `cookiy_introduce` is used only as a health check, NEVER dump the
+  raw JSON payload to the user. Summarize the outcome in one sentence,
+  such as: `Cookiy MCP is installed and verified successfully.`
+
 ### Install the MCP server
 
 Identify which AI client you are running in (Codex, Claude Code, Cursor,
@@ -58,18 +73,25 @@ For headless sandbox environments such as Manus, use
 `npx cookiy-mcp --client manus -y`. The installer writes a resumable
 OAuth helper bundle under `~/.mcp/<server>/`.
 
-The installer will prompt for OAuth authentication. This is expected.
+The installer will open the authorization page when possible and print
+one explicit next step. If approval does not resume setup
+automatically, paste the final callback URL or just the authorization
+code back into the terminal.
 
 ### Verify the connection
 
 After installation, call `cookiy_introduce` to confirm the MCP server
 is connected and authenticated.
 
+If the user's intent was only setup/connect/install/repair, stop after a
+single success confirmation sentence. Do NOT automatically switch into a
+research intake questionnaire after verification succeeds.
+
 If authentication fails:
 - Re-run the install command. Do NOT remove and reinstall the server.
 - The OAuth token may have expired. The installer handles re-authentication.
 
-### Orient the user
+### Orient the user only when asked
 
 Present Cookiy's five capability modules:
 

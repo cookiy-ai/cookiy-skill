@@ -1,12 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { createServer } from 'node:http';
 import {
+  buildBrowserOpenCommand,
   buildPendingOAuthSession,
+  formatAuthorizationGuidance,
   generateInstallNotes,
   generateMcpCallScript,
   generateMcpCallScriptPowerShell,
   isReusablePendingOAuthSession,
   resolveHeadlessWorkspacePaths,
+  verifyCookiyMcpConnection,
 } from '../../lib/clients/headless-oauth.mjs';
 import { detectClients } from '../../lib/detect.mjs';
 
@@ -56,6 +60,123 @@ test('generated shell helper embeds the caller identity and refresh flow', () =>
   assert.match(script, /"name":"manus"/);
   assert.match(script, /grant_type=refresh_token/);
   assert.match(script, /credentials\.json/);
+});
+
+test('formats a single explicit authorization guidance block for successful browser launch', () => {
+  const lines = formatAuthorizationGuidance({
+    clientLabel: 'Manus',
+    authUrl: 'https://s-api.cookiy.ai/oauth/authorize?...',
+    callbackPort: 18247,
+    browserOpened: true,
+  });
+
+  assert.equal(lines[0], 'Manus authorization needs one quick step in the browser.');
+  assert.match(lines[1], /already be opening/i);
+  assert.match(lines[2], /Authorize Cookiy: https:\/\/s-api\.cookiy\.ai\/oauth\/authorize/);
+  assert.match(lines[3], /127\.0\.0\.1:18247\/callback/);
+  assert.match(lines[4], /paste the full callback URL or just the code/i);
+});
+
+test('formats authorization guidance for manual browser opening fallback', () => {
+  const lines = formatAuthorizationGuidance({
+    clientLabel: 'OpenClaw',
+    authUrl: 'https://s-api.cookiy.ai/oauth/authorize?...',
+    callbackPort: 18248,
+    browserOpened: false,
+  });
+
+  assert.equal(lines[0], 'OpenClaw authorization needs one quick step in the browser.');
+  assert.match(lines[1], /Open the authorization link below/i);
+  assert.match(lines[3], /127\.0\.0\.1:18248\/callback/);
+});
+
+test('selects the expected browser open command per platform', () => {
+  assert.deepEqual(
+    buildBrowserOpenCommand('https://example.com', 'darwin'),
+    { command: 'open', args: ['https://example.com'] },
+  );
+  assert.deepEqual(
+    buildBrowserOpenCommand('https://example.com', 'win32'),
+    { command: 'cmd', args: ['/c', 'start', '', 'https://example.com'] },
+  );
+  assert.deepEqual(
+    buildBrowserOpenCommand('https://example.com', 'linux'),
+    { command: 'xdg-open', args: ['https://example.com'] },
+  );
+});
+
+test('verifies Cookiy MCP connection with initialize and introduce calls', async () => {
+  const requests = [];
+  const server = createServer((req, res) => {
+    let body = '';
+    req.on('data', (chunk) => {
+      body += chunk;
+    });
+    req.on('end', () => {
+      requests.push({
+        authorization: req.headers.authorization,
+        payload: JSON.parse(body),
+      });
+
+      const method = requests.at(-1).payload.method;
+      if (method === 'initialize') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          jsonrpc: '2.0',
+          id: 1,
+          result: {
+            protocolVersion: '2025-03-26',
+            capabilities: {},
+            serverInfo: { name: 'cookiy', version: 'test' },
+          },
+        }));
+        return;
+      }
+
+      if (method === 'notifications/initialized') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end('');
+        return;
+      }
+
+      if (method === 'tools/call') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          jsonrpc: '2.0',
+          id: 2,
+          result: {
+            structuredContent: {
+              ok: true,
+              data: { brand_name: 'Cookiy' },
+            },
+          },
+        }));
+        return;
+      }
+
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'unexpected method' }));
+    });
+  });
+
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  const { port } = server.address();
+
+  try {
+    await verifyCookiyMcpConnection(`http://127.0.0.1:${port}/mcp`, 'token-123', {
+      clientInfoName: 'manus',
+    });
+  } finally {
+    await new Promise((resolve, reject) => server.close((err) => (err ? reject(err) : resolve())));
+  }
+
+  assert.equal(requests.length, 3);
+  assert.equal(requests[0].authorization, 'Bearer token-123');
+  assert.equal(requests[0].payload.method, 'initialize');
+  assert.equal(requests[0].payload.params.clientInfo.name, 'manus');
+  assert.equal(requests[1].payload.method, 'notifications/initialized');
+  assert.equal(requests[2].payload.method, 'tools/call');
+  assert.equal(requests[2].payload.params.name, 'cookiy_introduce');
 });
 
 test('generated powershell helper embeds the caller identity and refresh flow', () => {

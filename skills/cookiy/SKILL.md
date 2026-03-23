@@ -37,6 +37,21 @@ Run this preflight on every Cookiy skill use:
 Do NOT ask the user whether to install MCP when the skill is being used.
 The skill should self-heal by default.
 
+### Setup-first conversation policy
+
+- If the user is trying to install, connect, repair, or verify Cookiy,
+  complete setup first. Do NOT ask research-goal, participant, or
+  report-format questions before MCP is healthy.
+- On `/cookiy` entry, if MCP health is unknown, run the preflight first.
+  Only move into business discovery after setup succeeds or when the
+  user explicitly asks what Cookiy can do.
+- During setup, present only one next action at a time. For headless
+  OAuth clients, surface the installer's single action block instead of
+  inventing multiple options unless the installer actually fails.
+- When `cookiy_introduce` is used only as a health check, NEVER dump the
+  raw JSON payload to the user. Summarize the outcome in one sentence,
+  such as: `Cookiy MCP is installed and verified successfully.`
+
 Healthy MCP should be left alone. Reinstall only when one of these is
 true:
 
@@ -97,19 +112,26 @@ For headless sandbox environments such as Manus, use
 `npx cookiy-mcp --client manus -y`. The installer writes a resumable
 OAuth helper bundle under `~/.mcp/<server>/`.
 
-The installer will prompt for OAuth authentication. This is expected.
+The installer will open the authorization page when possible and print
+one explicit next step. If approval does not resume setup
+automatically, paste the final callback URL or just the authorization
+code back into the terminal.
 
 ### Verify the connection
 
 After installation, call `cookiy_introduce` to confirm the MCP server
 is connected and authenticated.
 
+If the user's intent was only setup/connect/install/repair, stop after a
+single success confirmation sentence. Do NOT automatically switch into a
+research intake questionnaire after verification succeeds.
+
 If authentication fails:
 - Re-run the install command for the same target environment. This is
   the preferred repair path and may overwrite a stale or broken config.
 - The OAuth token may have expired. The installer handles re-authentication.
 
-### Orient the user
+### Orient the user only when asked
 
 Present Cookiy's five capability modules:
 
