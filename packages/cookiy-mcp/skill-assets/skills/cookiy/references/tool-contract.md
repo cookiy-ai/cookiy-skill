@@ -233,6 +233,19 @@ For async operations, poll at reasonable intervals:
 - `cookiy_report_status`: every 10-30 seconds (reports take longer)
 - `cookiy_recruit_status`: every 30-60 seconds (recruitment is slow)
 
+
+## Report PREVIEW vs READY (MCP behavior)
+
+- **PREVIEW** — Viewable early snapshot; may not include every interview
+  completed afterward until the pipeline updates. Users judge freshness from
+  the opened page.
+- **READY** — Final (non-preview) report; usually after the study's **configured
+  completed-interview / analysis completion target** is met and generation
+  finishes. Do not tell users that PREVIEW "becomes final as soon as any new
+  interview exists" without reference to that bar.
+- Share links must come **only** from `cookiy_report_share_link_get` (`share_url`),
+  never self-constructed URLs.
+
 ## Quantitative survey tools (optional)
 
 When the API operator has configured quantitative survey integration,
